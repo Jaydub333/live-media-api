@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Media API - Add Video Chat to Any App in Minutes</title>
+    <meta name="description" content="The easiest way to add HD video calls, voice chat, and real-time communication to your web application. Get started in 5 minutes with our simple API.">
+    <meta name="keywords" content="video chat API, voice call API, WebRTC API, real-time communication, video conferencing SDK">
+    <link rel="canonical" href="https://sea-turtle-app-e7q3a.ondigitalocean.app/marketing/">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Live Media API - Video Chat for Developers">
+    <meta property="og:description" content="Add HD video calls to your app in minutes. Simple API, powerful features, enterprise-ready.">
+    <meta property="og:image" content="https://sea-turtle-app-e7q3a.ondigitalocean.app/marketing/og-image.jpg">
+    <meta property="og:url" content="https://sea-turtle-app-e7q3a.ondigitalocean.app/marketing/">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grain)"/></svg>');
+            opacity: 0.1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 3.5em;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .hero .subtitle {
+            font-size: 1.5em;
+            margin-bottom: 30px;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        .hero .cta-buttons {
+            margin-top: 40px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            margin: 10px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: #fff;
+            color: #667eea;
+            box-shadow: 0 4px 15px rgba(255,255,255,0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255,255,255,0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        .stats {
+            background: #f8f9fa;
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-top: 50px;
+        }
+
+        .stat-item {
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .features {
+            padding: 100px 0;
+            background: white;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 60px;
+            color: #333;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .feature-card {
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            transition: all 0.3s;
+            border: 2px solid #f0f0f0;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+
+        .feature-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .pricing {
+            background: #f8f9fa;
+            padding: 100px 0;
+            text-align: center;
+        }
+
+        .pricing h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 60px;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .pricing-card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .pricing-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        }
+
+        .pricing-card.featured {
+            border: 3px solid #667eea;
+            transform: scale(1.1);
+        }
+
+        .pricing-card.featured::before {
+            content: 'MOST POPULAR';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #667eea;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .price {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+        }
+
+        .price span {
+            font-size: 0.4em;
+            color: #888;
+        }
+
+        .features-list {
+            list-style: none;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .features-list li {
+            padding: 8px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .features-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .demo {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 100px 0;
+            text-align: center;
+            color: white;
+        }
+
+        .demo h2 {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+        }
+
+        .demo-video {
+            max-width: 800px;
+            margin: 40px auto;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .code-example {
+            background: #1e1e1e;
+            color: #f8f8f2;
+            padding: 30px;
+            border-radius: 10px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            text-align: left;
+            margin: 30px auto;
+            max-width: 600px;
+            font-size: 0.9em;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+
+        .testimonials {
+            padding: 100px 0;
+            background: white;
+        }
+
+        .testimonials h2 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 60px;
+            color: #333;
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+        }
+
+        .testimonial {
+            background: #f8f9fa;
+            padding: 40px;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+
+        .testimonial-text {
+            font-style: italic;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+
+        .testimonial-author {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .footer {
+            background: #333;
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: #667eea;
+        }
+
+        .social-links {
+            margin-top: 30px;
+        }
+
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            border-radius: 50%;
+            line-height: 40px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .social-links a:hover {
+            transform: translateY(-3px);
+            background: #5a67d8;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5em; }
+            .hero .subtitle { font-size: 1.2em; }
+            .container { padding: 0 15px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .pricing-grid { grid-template-columns: 1fr; }
+            .btn { display: block; margin: 10px auto; max-width: 250px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Add Video Chat to Any App</h1>
+            <p class="subtitle">The easiest API for developers to integrate HD video calls, voice chat, and real-time communication. Get started in minutes, not months.</p>
+            
+            <div class="cta-buttons">
+                <a href="https://sea-turtle-app-e7q3a.ondigitalocean.app/demo/" class="btn btn-primary">Try Live Demo</a>
+                <a href="https://sea-turtle-app-e7q3a.ondigitalocean.app/dashboard/" class="btn btn-secondary">Start Building</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="container">
+            <h2>Trusted by Developers Worldwide</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">5min</div>
+                    <p>Average Integration Time</p>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">99.9%</div>
+                    <p>API Uptime Guarantee</p>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">200</div>
+                    <p>Max Participants per Call</p>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">24/7</div>
+                    <p>Developer Support</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <h2>Everything You Need to Build Amazing Video Experiences</h2>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎥</div>
+                    <h3>HD Video Calls</h3>
+                    <p>Crystal clear video quality with automatic bandwidth optimization. Support for up to 200 participants per call.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🎤</div>
+                    <h3>Voice Chat</h3>
+                    <p>High-quality audio with noise cancellation and echo suppression. Perfect for conferences and meetings.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Lightning Fast</h3>
+                    <p>WebRTC-powered peer-to-peer connections ensure minimal latency and maximum performance.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h3>Enterprise Security</h3>
+                    <p>End-to-end encryption, JWT authentication, and enterprise-grade security compliance.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Real-time Analytics</h3>
+                    <p>Built-in usage tracking, call quality metrics, and detailed analytics dashboard.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔧</div>
+                    <h3>Simple Integration</h3>
+                    <p>RESTful API with comprehensive SDKs. Get video calls working in your app in under 10 lines of code.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section class="demo">
+        <div class="container">
+            <h2>See It In Action</h2>
+            <p>Watch how easy it is to integrate Live Media API into your application:</p>
+            
+            <div class="demo-video">
+                <h3>🎯 Try Our Interactive Demo</h3>
+                <p style="margin: 20px 0;">Experience real video chat powered by our API</p>
+                <a href="https://sea-turtle-app-e7q3a.ondigitalocean.app/demo/" class="btn btn-primary">Launch Demo App</a>
+            </div>
+
+            <div class="code-example">
+<span style="color: #75715e;">// Get started in 3 simple steps:</span>
+
+<span style="color: #f92672;">const</span> <span style="color: #a6e22e;">sdk</span> <span style="color: #f92672;">=</span> <span style="color: #66d9ef;">new</span> <span style="color: #a6e22e;">MultimediaSDK</span>(<span style="color: #e6db74;">'https://sea-turtle-app-e7q3a.ondigitalocean.app'</span>);
+<span style="color: #a6e22e;">sdk</span>.<span style="color: #a6e22e;">apiKey</span> <span style="color: #f92672;">=</span> <span style="color: #e6db74;">'your-api-key'</span>;
+
+<span style="color: #75715e;">// Connect and create room</span>
+<span style="color: #66d9ef;">await</span> <span style="color: #a6e22e;">sdk</span>.<span style="color: #a6e22e;">connect</span>();
+<span style="color: #f92672;">const</span> <span style="color: #a6e22e;">room</span> <span style="color: #f92672;">=</span> <span style="color: #66d9ef;">await</span> <span style="color: #a6e22e;">sdk</span>.<span style="color: #a6e22e;">createRoom</span>(<span style="color: #e6db74;">'My Meeting'</span>);
+
+<span style="color: #75715e;">// Start video call</span>
+<span style="color: #f92672;">const</span> <span style="color: #a6e22e;">stream</span> <span style="color: #f92672;">=</span> <span style="color: #66d9ef;">await</span> <span style="color: #a6e22e;">sdk</span>.<span style="color: #a6e22e;">startVideoCall</span>();
+<span style="color: #a6e22e;">document</span>.<span style="color: #a6e22e;">getElementById</span>(<span style="color: #e6db74;">'video'</span>).<span style="color: #a6e22e;">srcObject</span> <span style="color: #f92672;">=</span> <span style="color: #a6e22e;">stream</span>;
+
+<span style="color: #75715e;">// That's it! Video chat is live 🚀</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing">
+        <div class="container">
+            <h2>Simple, Transparent Pricing</h2>
+            <p>Start free, scale as you grow. No hidden fees, no setup costs.</p>
+            
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Starter</h3>
+                    <div class="price">$29<span>/month</span></div>
+                    <ul class="features-list">
+                        <li>5 rooms per month</li>
+                        <li>10 max participants</li>
+                        <li>1,000 minutes included</li>
+                        <li>HD video quality</li>
+                        <li>Email support</li>
+                        <li>Basic analytics</li>
+                    </ul>
+                    <a href="https://sea-turtle-app-e7q3a.ondigitalocean.app/dashboard/" class="btn btn-primary">Start Free Trial</a>
+                </div>
+                
+                <div class="pricing-card featured">
+                    <h3>Professional</h3>
+                    <div class="price">$99<span>/month</span></div>
+                    <ul class="features-list">
+                        <li>25 rooms per month</li>
+                        <li>50 max participants</li>
+                        <li>5,000 minutes included</li>
+                        <li>HD video quality</li>
+                        <li>Priority support</li>
+                        <li>Advanced analytics</li>
+                        <li>Custom branding</li>
+                        <li>API rate limits</li>
+                    </ul>
+                    <a href="https://sea-turtle-app-e7q3a.ondigitalocean.app/dashboard/" class="btn btn-primary">Most Popular</a>
+                </div>
+                
+                <div class="pricing-card">
+                    <h3>Enterprise</h3>
+                    <div class="price">$299<span>/month</span></div>
+                    <ul class="features-list">
+                        <li>100 rooms per month</li>
+                        <li>200 max participants</li>
+                        <li>20,000 minutes included</li>
+                        <li>HD video quality</li>
+                        <li>24/7 phone support</li>
+                        <li>Real-time analytics</li>
+                        <li>White-label solution</li>
+                        <li>Dedicated support team</li>
+                        <li>SLA guarantee</li>
+                    </ul>
+                    <a href="https://sea-turtle-app-e7q3a.ondigitalocean.app/dashboard/" class="btn btn-primary">Contact Sales</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials">
+        <div class="container">
+            <h2>What Developers Are Saying</h2>
+            
+            <div class="testimonials-grid">
+                <div class="testimonial">
+                    <div class="testimonial-text">
+                        "Live Media API saved us months of development time. We went from concept to production video chat in just 2 days. The documentation is excellent and the API is incredibly stable."
+                    </div>
+                    <div class="testimonial-author">
+                        Sarah Chen, CTO at TechFlow
+                    </div>
+                </div>
+                
+                <div class="testimonial">
+                    <div class="testimonial-text">
+                        "The billing integration is seamless. Our customers love the video chat feature, and we love how easy it was to implement usage-based billing with automatic scaling."
+                    </div>
+                    <div class="testimonial-author">
+                        Marcus Rodriguez, Lead Developer at StartupCorp
+                    </div>
+                </div>
+                
+                <div class="testimonial">
+                    <div class="testimonial-text">
+                        "Finally, a video API that just works. No complex WebRTC setup, no server management headaches. Just clean, reliable video chat that scales with our business."
+                    </div>
+                    <div class="testimonial-author">
+                        Jennifer Park, Engineering Manager at ScaleUp
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <h3>Ready to Add Video Chat to Your App?</h3>
+            <p>Join thousands of developers building the future of communication</p>
+            
+            <div style="margin: 30px 0;">
+                <a href="https://sea-turtle-app-e7q3a.ondigitalocean.app/dashboard/" class="btn btn-primary">Get Started Free</a>
+                <a href="https://sea-turtle-app-e7q3a.ondigitalocean.app/demo/" class="btn btn-secondary">Try Demo</a>
+            </div>
+            
+            <div class="footer-links">
+                <a href="https://sea-turtle-app-e7q3a.ondigitalocean.app/">API Documentation</a>
+                <a href="https://sea-turtle-app-e7q3a.ondigitalocean.app/examples/">Examples</a>
+                <a href="mailto:support@livemediaapi.com">Support</a>
+                <a href="#pricing">Pricing</a>
+            </div>
+            
+            <div class="social-links">
+                <a href="#">📧</a>
+                <a href="#">🐦</a>
+                <a href="#">💼</a>
+                <a href="#">📱</a>
+            </div>
+            
+            <p style="margin-top: 40px; color: #888;">
+                © 2024 Live Media API. Built with ❤️ for developers worldwide.
+            </p>
+        </div>
+    </footer>
+</body>
+</html>

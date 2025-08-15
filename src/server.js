@@ -43,6 +43,7 @@ app.use('/api/billing', billingRoutes);
 app.use('/dashboard', express.static(path.join(__dirname, '..', 'dashboard')));
 app.use('/examples', express.static(path.join(__dirname, '..', 'examples')));
 app.use('/demo', express.static(path.join(__dirname, '..', 'test-app')));
+app.use('/marketing', express.static(path.join(__dirname, '..', 'marketing')));
 
 // Serve SDK file
 app.get('/sdk/multimedia-sdk.js', (req, res) => {
