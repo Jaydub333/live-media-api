@@ -41,6 +41,7 @@ app.use('/api/billing', billingRoutes);
 // Serve static files
 app.use('/dashboard', express.static('dashboard'));
 app.use('/examples', express.static('examples'));
+app.use('/demo', express.static('test-app'));
 
 const rooms = new Map();
 const users = new Map();
