@@ -38,6 +38,10 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/billing', billingRoutes);
 
+// Serve static files
+app.use('/dashboard', express.static('dashboard'));
+app.use('/examples', express.static('examples'));
+
 const rooms = new Map();
 const users = new Map();
 
