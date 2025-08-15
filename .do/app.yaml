@@ -1,0 +1,66 @@
+name: multimedia-api
+services:
+- name: web
+  source_dir: /
+  github:
+    repo: Jaydub333/live-media-api
+    branch: main
+    deploy_on_push: true
+  run_command: npm start
+  environment_slug: node-js
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  http_port: 3000
+  envs:
+  - key: NODE_ENV
+    value: production
+  - key: PORT
+    value: "3000"
+  - key: JWT_SECRET
+    value: ${JWT_SECRET}
+    type: SECRET
+  - key: STRIPE_SECRET_KEY
+    value: ${STRIPE_SECRET_KEY}
+    type: SECRET
+  - key: STRIPE_WEBHOOK_SECRET
+    value: ${STRIPE_WEBHOOK_SECRET}
+    type: SECRET
+  - key: STRIPE_PUBLISHABLE_KEY
+    value: ${STRIPE_PUBLISHABLE_KEY}
+    type: SECRET
+  - key: CORS_ORIGINS
+    value: https://your-domain.com,https://www.your-domain.com
+  health_check:
+    http_path: /
+    initial_delay_seconds: 10
+    period_seconds: 10
+    timeout_seconds: 5
+    success_threshold: 1
+    failure_threshold: 3
+
+databases:
+- name: multimedia-db
+  engine: PG
+  version: "14"
+  size: db-s-dev-database
+
+static_sites:
+- name: dashboard
+  source_dir: /dashboard
+  github:
+    repo: Jaydub333/live-media-api
+    branch: main
+    deploy_on_push: true
+  build_command: echo "Static site - no build needed"
+  output_dir: /
+  index_document: index.html
+  error_document: index.html
+  envs:
+  - key: VITE_API_URL
+    value: ${_self.URL}
+
+domains:
+- domain: your-domain.com
+  type: PRIMARY
+- domain: www.your-domain.com
+  type: ALIAS

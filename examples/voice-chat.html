@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Chat Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .controls input {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .controls input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .controls button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        
+        .controls button:hover {
+            background: #45a049;
+        }
+        
+        .status {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .voice-controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .voice-controls button {
+            margin: 10px;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-mic {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .btn-mic.disabled {
+            background: #f44336;
+        }
+        
+        .btn-mic:hover {
+            transform: scale(1.05);
+        }
+        
+        .btn-end {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-end:hover {
+            transform: scale(1.05);
+        }
+        
+        .participants {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .participant {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+        
+        .participant-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .participant-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #4CAF50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        .mic-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4CAF50;
+        }
+        
+        .mic-indicator.muted {
+            background: #f44336;
+        }
+        
+        .audio-visualizer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            height: 60px;
+        }
+        
+        .bar {
+            width: 4px;
+            height: 20px;
+            background: #4CAF50;
+            margin: 0 2px;
+            border-radius: 2px;
+            animation: pulse 1s infinite ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scaleY(0.3); }
+            50% { transform: scaleY(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Voice Chat</h1>
+        
+        <div class="controls">
+            <input type="text" id="serverUrl" placeholder="Server URL" value="http://localhost:3000">
+            <input type="text" id="roomId" placeholder="Room ID (leave empty for new room)">
+            <input type="text" id="userName" placeholder="Your Name" value="User" + Math.floor(Math.random() * 1000)>
+            <button onclick="connectToRoom()">Join Voice Chat</button>
+        </div>
+        
+        <div class="status" id="status">Not connected</div>
+        
+        <div class="voice-controls" id="voiceControls" style="display: none;">
+            <button class="btn-mic" id="micBtn" onclick="toggleMic()">🎤 Mic On</button>
+            <button class="btn-end" onclick="endCall()">📞 Leave</button>
+        </div>
+        
+        <div class="audio-visualizer" id="visualizer" style="display: none;">
+            <div class="bar" style="animation-delay: 0s;"></div>
+            <div class="bar" style="animation-delay: 0.1s;"></div>
+            <div class="bar" style="animation-delay: 0.2s;"></div>
+            <div class="bar" style="animation-delay: 0.3s;"></div>
+            <div class="bar" style="animation-delay: 0.4s;"></div>
+            <div class="bar" style="animation-delay: 0.5s;"></div>
+            <div class="bar" style="animation-delay: 0.6s;"></div>
+            <div class="bar" style="animation-delay: 0.7s;"></div>
+        </div>
+        
+        <div class="participants" id="participants" style="display: none;">
+            <h3>Participants</h3>
+            <div id="participantList"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="../src/client/multimedia-sdk.js"></script>
+    <script>
+        let sdk = null;
+        let micEnabled = true;
+        let participants = new Map();
+        let localUserId = null;
+        
+        async function connectToRoom() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            const roomId = document.getElementById('roomId').value;
+            const userName = document.getElementById('userName').value;
+            
+            if (!userName) {
+                alert('Please enter your name');
+                return;
+            }
+            
+            try {
+                updateStatus('Connecting...');
+                
+                sdk = new MultimediaSDK(serverUrl);
+                await sdk.connect();
+                
+                setupEventHandlers();
+                
+                let targetRoomId = roomId;
+                if (!targetRoomId) {
+                    const room = await sdk.createRoom(`${userName}'s Voice Room`);
+                    targetRoomId = room.id;
+                    document.getElementById('roomId').value = targetRoomId;
+                    updateStatus(`Created voice room: ${targetRoomId}`);
+                }
+                
+                await sdk.joinRoom(targetRoomId, userName, 'voice');
+                
+            } catch (error) {
+                console.error('Connection error:', error);
+                updateStatus('Connection failed: ' + error.message);
+            }
+        }
+        
+        function setupEventHandlers() {
+            sdk.on('joinedRoom', async (data) => {
+                localUserId = data.user.id;
+                updateStatus(`Joined voice room: ${data.roomId}`);
+                
+                participants.set(localUserId, {
+                    id: localUserId,
+                    name: data.user.name,
+                    micEnabled: true,
+                    isLocal: true
+                });
+                
+                data.existingUsers.forEach(user => {
+                    participants.set(user.id, {
+                        id: user.id,
+                        name: user.name,
+                        micEnabled: true,
+                        isLocal: false
+                    });
+                });
+                
+                try {
+                    const localStream = await sdk.startVoiceCall();
+                    document.getElementById('voiceControls').style.display = 'block';
+                    document.getElementById('visualizer').style.display = 'flex';
+                    document.getElementById('participants').style.display = 'block';
+                    updateParticipantsList();
+                } catch (error) {
+                    console.error('Failed to start voice call:', error);
+                    updateStatus('Failed to access microphone: ' + error.message);
+                }
+            });
+            
+            sdk.on('userJoined', (user) => {
+                participants.set(user.id, {
+                    id: user.id,
+                    name: user.name,
+                    micEnabled: true,
+                    isLocal: false
+                });
+                updateParticipantsList();
+                updateStatus(`${user.name} joined the voice chat`);
+            });
+            
+            sdk.on('userLeft', (data) => {
+                participants.delete(data.userId);
+                updateParticipantsList();
+                updateStatus(`User left the voice chat`);
+            });
+            
+            sdk.on('remoteStream', (data) => {
+                updateStatus(`Connected to ${participants.get(data.userId)?.name || 'user'}`);
+            });
+            
+            sdk.on('error', (error) => {
+                console.error('SDK Error:', error);
+                updateStatus('Error: ' + error.message);
+            });
+            
+            sdk.on('mediaToggled', (data) => {
+                if (data.mediaType === 'audio') {
+                    const participant = participants.get(data.userId);
+                    if (participant) {
+                        participant.micEnabled = data.mediaEnabled;
+                        updateParticipantsList();
+                    }
+                    updateStatus(`User ${data.mediaEnabled ? 'unmuted' : 'muted'} microphone`);
+                }
+            });
+        }
+        
+        function updateParticipantsList() {
+            const list = document.getElementById('participantList');
+            list.innerHTML = '';
+            
+            participants.forEach(participant => {
+                const div = document.createElement('div');
+                div.className = 'participant';
+                
+                const info = document.createElement('div');
+                info.className = 'participant-info';
+                
+                const avatar = document.createElement('div');
+                avatar.className = 'participant-avatar';
+                avatar.textContent = participant.name.charAt(0).toUpperCase();
+                
+                const name = document.createElement('span');
+                name.textContent = participant.name + (participant.isLocal ? ' (You)' : '');
+                
+                const micIndicator = document.createElement('div');
+                micIndicator.className = `mic-indicator ${participant.micEnabled ? '' : 'muted'}`;
+                
+                info.appendChild(avatar);
+                info.appendChild(name);
+                div.appendChild(info);
+                div.appendChild(micIndicator);
+                list.appendChild(div);
+            });
+        }
+        
+        function toggleMic() {
+            micEnabled = !micEnabled;
+            sdk.toggleAudio(micEnabled);
+            
+            const btn = document.getElementById('micBtn');
+            btn.textContent = micEnabled ? '🎤 Mic On' : '🔇 Mic Off';
+            btn.className = micEnabled ? 'btn-mic' : 'btn-mic disabled';
+            
+            const localParticipant = participants.get(localUserId);
+            if (localParticipant) {
+                localParticipant.micEnabled = micEnabled;
+                updateParticipantsList();
+            }
+        }
+        
+        function endCall() {
+            if (sdk) {
+                sdk.leaveRoom();
+                sdk = null;
+            }
+            
+            participants.clear();
+            document.getElementById('voiceControls').style.display = 'none';
+            document.getElementById('visualizer').style.display = 'none';
+            document.getElementById('participants').style.display = 'none';
+            updateStatus('Left voice chat');
+            
+            micEnabled = true;
+            document.getElementById('micBtn').textContent = '🎤 Mic On';
+            document.getElementById('micBtn').className = 'btn-mic';
+        }
+        
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+            console.log('Status:', message);
+        }
+    </script>
+</body>
+</html>

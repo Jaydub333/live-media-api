@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Chat Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+        }
+        
+        .controls input, .controls button {
+            margin: 5px;
+            padding: 8px;
+        }
+        
+        .video-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .video-wrapper {
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .local-video {
+            border-color: #007bff;
+        }
+        
+        video {
+            width: 300px;
+            height: 225px;
+            background: #000;
+        }
+        
+        .video-label {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .media-controls {
+            margin: 20px 0;
+        }
+        
+        .media-controls button {
+            margin: 5px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .btn-video { background: #28a745; color: white; }
+        .btn-video.disabled { background: #dc3545; }
+        .btn-audio { background: #17a2b8; color: white; }
+        .btn-audio.disabled { background: #dc3545; }
+        .btn-end { background: #dc3545; color: white; }
+        
+        .status {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Video Chat Example</h1>
+    
+    <div class="controls">
+        <input type="text" id="serverUrl" placeholder="Server URL" value="http://localhost:3000">
+        <input type="text" id="roomId" placeholder="Room ID (leave empty for new room)">
+        <input type="text" id="userName" placeholder="Your Name" value="User" + Math.floor(Math.random() * 1000)>
+        <button onclick="connectToRoom()">Join/Create Room</button>
+    </div>
+    
+    <div class="status" id="status">Not connected</div>
+    
+    <div class="media-controls" id="mediaControls" style="display: none;">
+        <button class="btn-video" id="videoBtn" onclick="toggleVideo()">Video On</button>
+        <button class="btn-audio" id="audioBtn" onclick="toggleAudio()">Audio On</button>
+        <button class="btn-end" onclick="endCall()">End Call</button>
+    </div>
+    
+    <div class="video-container" id="videoContainer"></div>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="../src/client/multimedia-sdk.js"></script>
+    <script>
+        let sdk = null;
+        let videoEnabled = true;
+        let audioEnabled = true;
+        let localVideoElement = null;
+        
+        async function connectToRoom() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            const roomId = document.getElementById('roomId').value;
+            const userName = document.getElementById('userName').value;
+            
+            if (!userName) {
+                alert('Please enter your name');
+                return;
+            }
+            
+            try {
+                updateStatus('Connecting...');
+                
+                sdk = new MultimediaSDK(serverUrl);
+                await sdk.connect();
+                
+                setupEventHandlers();
+                
+                let targetRoomId = roomId;
+                if (!targetRoomId) {
+                    const room = await sdk.createRoom(`${userName}'s Room`);
+                    targetRoomId = room.id;
+                    document.getElementById('roomId').value = targetRoomId;
+                    updateStatus(`Created room: ${targetRoomId}`);
+                }
+                
+                await sdk.joinRoom(targetRoomId, userName, 'video');
+                
+            } catch (error) {
+                console.error('Connection error:', error);
+                updateStatus('Connection failed: ' + error.message);
+            }
+        }
+        
+        function setupEventHandlers() {
+            sdk.on('joinedRoom', async (data) => {
+                updateStatus(`Joined room: ${data.roomId}`);
+                
+                try {
+                    const localStream = await sdk.startVideoCall();
+                    displayLocalVideo(localStream);
+                    document.getElementById('mediaControls').style.display = 'block';
+                } catch (error) {
+                    console.error('Failed to start video:', error);
+                    updateStatus('Failed to access camera/microphone: ' + error.message);
+                }
+            });
+            
+            sdk.on('userJoined', (user) => {
+                updateStatus(`User joined: ${user.name}`);
+            });
+            
+            sdk.on('userLeft', (data) => {
+                removeRemoteVideo(data.userId);
+                updateStatus(`User left`);
+            });
+            
+            sdk.on('remoteStream', (data) => {
+                displayRemoteVideo(data.userId, data.stream);
+                updateStatus(`Connected to peer`);
+            });
+            
+            sdk.on('error', (error) => {
+                console.error('SDK Error:', error);
+                updateStatus('Error: ' + error.message);
+            });
+            
+            sdk.on('mediaToggled', (data) => {
+                updateStatus(`User ${data.mediaType} ${data.mediaEnabled ? 'enabled' : 'disabled'}`);
+            });
+        }
+        
+        function displayLocalVideo(stream) {
+            const container = document.getElementById('videoContainer');
+            
+            const wrapper = document.createElement('div');
+            wrapper.className = 'video-wrapper local-video';
+            wrapper.id = 'local-video-wrapper';
+            
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            video.muted = true;
+            video.autoplay = true;
+            video.playsInline = true;
+            
+            const label = document.createElement('div');
+            label.className = 'video-label';
+            label.textContent = 'You';
+            
+            wrapper.appendChild(video);
+            wrapper.appendChild(label);
+            container.appendChild(wrapper);
+            
+            localVideoElement = video;
+        }
+        
+        function displayRemoteVideo(userId, stream) {
+            const container = document.getElementById('videoContainer');
+            
+            const wrapper = document.createElement('div');
+            wrapper.className = 'video-wrapper';
+            wrapper.id = `remote-video-${userId}`;
+            
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            video.autoplay = true;
+            video.playsInline = true;
+            
+            const label = document.createElement('div');
+            label.className = 'video-label';
+            label.textContent = 'Remote User';
+            
+            wrapper.appendChild(video);
+            wrapper.appendChild(label);
+            container.appendChild(wrapper);
+        }
+        
+        function removeRemoteVideo(userId) {
+            const element = document.getElementById(`remote-video-${userId}`);
+            if (element) {
+                element.remove();
+            }
+        }
+        
+        function toggleVideo() {
+            videoEnabled = !videoEnabled;
+            sdk.toggleVideo(videoEnabled);
+            
+            const btn = document.getElementById('videoBtn');
+            btn.textContent = videoEnabled ? 'Video On' : 'Video Off';
+            btn.className = videoEnabled ? 'btn-video' : 'btn-video disabled';
+        }
+        
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            sdk.toggleAudio(audioEnabled);
+            
+            const btn = document.getElementById('audioBtn');
+            btn.textContent = audioEnabled ? 'Audio On' : 'Audio Off';
+            btn.className = audioEnabled ? 'btn-audio' : 'btn-audio disabled';
+        }
+        
+        function endCall() {
+            if (sdk) {
+                sdk.leaveRoom();
+                sdk = null;
+            }
+            
+            document.getElementById('videoContainer').innerHTML = '';
+            document.getElementById('mediaControls').style.display = 'none';
+            updateStatus('Call ended');
+            
+            videoEnabled = true;
+            audioEnabled = true;
+            document.getElementById('videoBtn').textContent = 'Video On';
+            document.getElementById('videoBtn').className = 'btn-video';
+            document.getElementById('audioBtn').textContent = 'Audio On';
+            document.getElementById('audioBtn').className = 'btn-audio';
+        }
+        
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+            console.log('Status:', message);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multimedia API Dashboard</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .auth-section, .dashboard-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-right: 10px;
+        }
+        
+        .btn:hover {
+            background: #5a67d8;
+        }
+        
+        .btn-secondary {
+            background: #718096;
+        }
+        
+        .btn-secondary:hover {
+            background: #4a5568;
+        }
+        
+        .btn-danger {
+            background: #e53e3e;
+        }
+        
+        .btn-danger:hover {
+            background: #c53030;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e1e5e9;
+            margin-bottom: 30px;
+        }
+        
+        .tab {
+            padding: 15px 30px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #718096;
+            margin-top: 5px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #667eea;
+            transition: width 0.3s;
+        }
+        
+        .plan-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .plan-card {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .plan-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .plan-card.current {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+        
+        .plan-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .plan-price {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .plan-features {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+        
+        .plan-features li {
+            padding: 5px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+        
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+        
+        .subscription-status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-active {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .status-inactive {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        
+        .status-trial {
+            background: #faf089;
+            color: #744210;
+        }
+        
+        #payment-form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .StripeElement {
+            background: white;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎥 Multimedia API</h1>
+            <p>Manage your video and voice chat subscriptions</p>
+        </div>
+        
+        <!-- Authentication Section -->
+        <div id="auth-section" class="auth-section">
+            <div id="login-form">
+                <h2>Login to Your Account</h2>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button class="btn" onclick="login()">Login</button>
+                <button class="btn btn-secondary" onclick="showRegister()">Register</button>
+            </div>
+            
+            <div id="register-form" class="hidden">
+                <h2>Create New Account</h2>
+                <div class="form-group">
+                    <label for="reg-name">Full Name</label>
+                    <input type="text" id="reg-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-email">Email</label>
+                    <input type="email" id="reg-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">Password</label>
+                    <input type="password" id="reg-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-plan">Initial Plan</label>
+                    <select id="reg-plan">
+                        <option value="starter">Starter - $29/month</option>
+                        <option value="professional">Professional - $99/month</option>
+                        <option value="enterprise">Enterprise - $299/month</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="register()">Create Account</button>
+                <button class="btn btn-secondary" onclick="showLogin()">Back to Login</button>
+            </div>
+        </div>
+        
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="dashboard-section hidden">
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('overview')">Overview</div>
+                <div class="tab" onclick="showTab('billing')">Billing</div>
+                <div class="tab" onclick="showTab('api')">API Keys</div>
+                <div class="tab" onclick="showTab('usage')">Usage</div>
+            </div>
+            
+            <!-- Overview Tab -->
+            <div id="overview-tab" class="tab-content active">
+                <div id="user-info"></div>
+                <div class="stats-grid" id="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="rooms-used">-</div>
+                        <div class="stat-label">Rooms Used This Month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="minutes-used">-</div>
+                        <div class="stat-label">Minutes Used This Month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="days-remaining">-</div>
+                        <div class="stat-label">Days Until Reset</div>
+                    </div>
+                </div>
+                <button class="btn btn-danger" onclick="logout()">Logout</button>
+            </div>
+            
+            <!-- Billing Tab -->
+            <div id="billing-tab" class="tab-content">
+                <h3>Subscription Plans</h3>
+                <div class="plan-cards" id="plan-cards">
+                    <!-- Plans will be loaded here -->
+                </div>
+                
+                <div id="payment-section" class="hidden">
+                    <h3>Complete Your Subscription</h3>
+                    <form id="payment-form">
+                        <div id="card-element">
+                            <!-- Stripe Elements will create form elements here -->
+                        </div>
+                        <button type="submit" class="btn" id="submit-payment">Subscribe Now</button>
+                        <button type="button" class="btn btn-secondary" onclick="hidePaymentForm()">Cancel</button>
+                    </form>
+                </div>
+                
+                <div id="subscription-info"></div>
+            </div>
+            
+            <!-- API Keys Tab -->
+            <div id="api-tab" class="tab-content">
+                <h3>API Configuration</h3>
+                <div class="form-group">
+                    <label>Your API Key</label>
+                    <input type="text" id="api-key-display" readonly>
+                    <button class="btn btn-secondary" onclick="regenerateApiKey()">Regenerate</button>
+                </div>
+                <div class="form-group">
+                    <label>Server URL</label>
+                    <input type="text" value="http://localhost:3000" readonly>
+                </div>
+                
+                <h4>Example Usage</h4>
+                <pre id="api-example" style="background: #f7fafc; padding: 20px; border-radius: 8px; overflow-x: auto;">
+const sdk = new MultimediaSDK('http://localhost:3000');
+sdk.apiKey = 'YOUR_API_KEY';
+await sdk.connect();
+
+// Create a room
+const room = await sdk.createRoom('My Room');
+await sdk.joinRoom(room.id, 'User Name', 'video');
+const stream = await sdk.startVideoCall();
+                </pre>
+            </div>
+            
+            <!-- Usage Tab -->
+            <div id="usage-tab" class="tab-content">
+                <h3>Usage Statistics</h3>
+                <div id="usage-details">
+                    <div class="loading">Loading usage data...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="alerts"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        let currentUser = null;
+        let stripe = null;
+        let card = null;
+        let selectedPlan = null;
+
+        // Initialize Stripe (you'll need to set your publishable key)
+        if (window.Stripe) {
+            stripe = Stripe('pk_test_your_publishable_key_here'); // Replace with your actual key
+            const elements = stripe.elements();
+            card = elements.create('card');
+        }
+
+        function showAlert(message, type = 'success') {
+            const alertsDiv = document.getElementById('alerts');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alertsDiv.appendChild(alert);
+            
+            setTimeout(() => alert.remove(), 5000);
+        }
+
+        function showLogin() {
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+        }
+
+        function showRegister() {
+            document.getElementById('register-form').classList.remove('hidden');
+            document.getElementById('login-form').classList.add('hidden');
+        }
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                showAlert('Please enter email and password', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    currentUser = data.user;
+                    showDashboard();
+                    showAlert('Login successful!');
+                } else {
+                    showAlert(data.error, 'error');
+                }
+            } catch (error) {
+                showAlert('Login failed: ' + error.message, 'error');
+            }
+        }
+
+        async function register() {
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const plan = document.getElementById('reg-plan').value;
+            
+            if (!name || !email || !password) {
+                showAlert('Please fill in all fields', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password, plan })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    currentUser = data.user;
+                    showDashboard();
+                    showAlert('Registration successful!');
+                } else {
+                    showAlert(data.error, 'error');
+                }
+            } catch (error) {
+                showAlert('Registration failed: ' + error.message, 'error');
+            }
+        }
+
+        function showDashboard() {
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.remove('hidden');
+            loadDashboardData();
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            currentUser = null;
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('dashboard-section').classList.add('hidden');
+            showLogin();
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            if (tabName === 'usage') {
+                loadUsageData();
+            } else if (tabName === 'billing') {
+                loadBillingData();
+            }
+        }
+
+        async function loadDashboardData() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_BASE}/auth/profile`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    updateUserInfo(data);
+                    updateStats(data.limits);
+                    document.getElementById('api-key-display').value = currentUser.apiKey;
+                }
+            } catch (error) {
+                showAlert('Failed to load profile data', 'error');
+            }
+        }
+
+        function updateUserInfo(data) {
+            const userInfoDiv = document.getElementById('user-info');
+            const statusClass = data.user.isActive ? 'status-active' : 'status-inactive';
+            const statusText = data.user.isActive ? 'Active' : 'Inactive';
+            
+            userInfoDiv.innerHTML = `
+                <h2>Welcome, ${data.user.name}!</h2>
+                <p><strong>Email:</strong> ${data.user.email}</p>
+                <p><strong>Plan:</strong> ${data.planDetails.name} ($${data.planDetails.price}/${data.planDetails.interval})</p>
+                <p><strong>Status:</strong> <span class="subscription-status ${statusClass}">${statusText}</span></p>
+            `;
+        }
+
+        function updateStats(limits) {
+            document.getElementById('rooms-used').textContent = `${limits.currentRooms}/${limits.maxRooms}`;
+            document.getElementById('minutes-used').textContent = `${limits.currentMinutes}/${limits.maxMinutes}`;
+            document.getElementById('days-remaining').textContent = currentUser.usage.daysUntilReset || '-';
+        }
+
+        async function loadBillingData() {
+            try {
+                const token = localStorage.getItem('token');
+                
+                // Load plans
+                const plansResponse = await fetch(`${API_BASE}/auth/plans`);
+                const plansData = await plansResponse.json();
+                
+                displayPlans(plansData.plans);
+                
+                // Load subscriptions
+                const subsResponse = await fetch(`${API_BASE}/billing/subscriptions`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (subsResponse.ok) {
+                    const subsData = await subsResponse.json();
+                    displaySubscriptions(subsData.subscriptions);
+                }
+                
+            } catch (error) {
+                showAlert('Failed to load billing data', 'error');
+            }
+        }
+
+        function displayPlans(plans) {
+            const planCardsDiv = document.getElementById('plan-cards');
+            planCardsDiv.innerHTML = '';
+            
+            plans.forEach(plan => {
+                const isCurrentPlan = currentUser && currentUser.plan === plan.id;
+                const cardClass = isCurrentPlan ? 'plan-card current' : 'plan-card';
+                
+                const features = Object.entries(plan.features).map(([key, value]) => {
+                    const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                    return `<li>${label}: ${value}</li>`;
+                }).join('');
+                
+                planCardsDiv.innerHTML += `
+                    <div class="${cardClass}">
+                        <div class="plan-name">${plan.name}</div>
+                        <div class="plan-price">$${plan.price}<small>/${plan.interval}</small></div>
+                        <ul class="plan-features">${features}</ul>
+                        ${isCurrentPlan ? 
+                            '<button class="btn btn-secondary" disabled>Current Plan</button>' :
+                            `<button class="btn" onclick="selectPlan('${plan.id}')">Choose Plan</button>`
+                        }
+                    </div>
+                `;
+            });
+        }
+
+        function selectPlan(planId) {
+            selectedPlan = planId;
+            showPaymentForm();
+        }
+
+        function showPaymentForm() {
+            document.getElementById('payment-section').classList.remove('hidden');
+            if (card && !document.querySelector('#card-element .StripeElement')) {
+                card.mount('#card-element');
+            }
+        }
+
+        function hidePaymentForm() {
+            document.getElementById('payment-section').classList.add('hidden');
+        }
+
+        async function loadUsageData() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_BASE}/billing/usage`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayUsageData(data);
+                }
+            } catch (error) {
+                showAlert('Failed to load usage data', 'error');
+            }
+        }
+
+        function displayUsageData(data) {
+            const usageDiv = document.getElementById('usage-details');
+            
+            usageDiv.innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">${data.usage.currentMonthRooms}</div>
+                        <div class="stat-label">Rooms Used</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${data.percentUsed.rooms}%"></div>
+                        </div>
+                        <small>${data.remaining.rooms} remaining of ${data.limits.maxRooms}</small>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${data.usage.currentMonthMinutes}</div>
+                        <div class="stat-label">Minutes Used</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${data.percentUsed.minutes}%"></div>
+                        </div>
+                        <small>${data.remaining.minutes} remaining of ${data.limits.maxMinutes}</small>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${data.usage.daysUntilReset}</div>
+                        <div class="stat-label">Days Until Reset</div>
+                        <small>Resets on: ${new Date(data.usage.resetDate).toLocaleDateString()}</small>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function regenerateApiKey() {
+            if (!confirm('Are you sure you want to regenerate your API key? This will invalidate your current key.')) {
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_BASE}/auth/regenerate-api-key`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('api-key-display').value = data.apiKey;
+                    currentUser.apiKey = data.apiKey;
+                    showAlert('API key regenerated successfully');
+                }
+            } catch (error) {
+                showAlert('Failed to regenerate API key', 'error');
+            }
+        }
+
+        // Payment form handling
+        if (stripe && card) {
+            const form = document.getElementById('payment-form');
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const { error, paymentMethod } = await stripe.createPaymentMethod({
+                    type: 'card',
+                    card: card,
+                });
+
+                if (error) {
+                    showAlert(error.message, 'error');
+                    return;
+                }
+
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch(`${API_BASE}/billing/create-subscription`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ planId: selectedPlan })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        const { error: confirmError } = await stripe.confirmCardPayment(data.clientSecret);
+
+                        if (!confirmError) {
+                            showAlert('Subscription created successfully!');
+                            hidePaymentForm();
+                            loadDashboardData();
+                            loadBillingData();
+                        } else {
+                            showAlert(confirmError.message, 'error');
+                        }
+                    } else {
+                        showAlert(data.error, 'error');
+                    }
+                } catch (error) {
+                    showAlert('Payment failed: ' + error.message, 'error');
+                }
+            });
+        }
+
+        // Initialize
+        const token = localStorage.getItem('token');
+        if (token) {
+            // Try to load user profile
+            loadDashboardData().then(() => {
+                if (currentUser) {
+                    showDashboard();
+                }
+            }).catch(() => {
+                // Token might be expired
+                localStorage.removeItem('token');
+                showLogin();
+            });
+        } else {
+            showLogin();
+        }
+    </script>
+</body>
+</html>
