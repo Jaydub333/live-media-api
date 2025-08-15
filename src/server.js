@@ -5,6 +5,7 @@ const socketIo = require('socket.io');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
 const authRoutes = require('./routes/auth');
@@ -39,9 +40,14 @@ app.use('/api/auth', authRoutes);
 app.use('/api/billing', billingRoutes);
 
 // Serve static files
-app.use('/dashboard', express.static('dashboard'));
-app.use('/examples', express.static('examples'));
-app.use('/demo', express.static('test-app'));
+app.use('/dashboard', express.static(path.join(__dirname, '..', 'dashboard')));
+app.use('/examples', express.static(path.join(__dirname, '..', 'examples')));
+app.use('/demo', express.static(path.join(__dirname, '..', 'test-app')));
+
+// Serve SDK file
+app.get('/sdk/multimedia-sdk.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client', 'multimedia-sdk.js'));
+});
 
 const rooms = new Map();
 const users = new Map();
